@@ -1,0 +1,97 @@
+---
+title: "Day 2 EOD Activity Part 2"
+format: html
+author: "Jordan Sibley" 
+editor: visual
+execute: 
+  warning: false
+  message: false
+  
+---
+
+## Part 2. Wild Data 
+
+Data set acquired from https://portal.edirepository.org/nis/metadataviewer?packageid=knb-lter-and.4027.14
+
+Aquatic Vertebrate Population Study in Mack Creek, Andrews Experimental Forest, 1987 to present
+
+#### Looking at the data 
+Description:	Vertebrate numbers and size: Annual survey of aquatic vertebrates, numbers, sizes
+Number of Records:	32209
+Number of Columns:	18
+
+```{r}
+# set up ----
+library(tidyverse)
+library(here)
+library(janitor)
+```
+
+```{r}
+# read in data ----
+mack_verts<- read.csv(here("data", "AS00601.csv"))
+```
+
+### Data Wrangling and exploring 
+```{r}
+# cleaning names 
+mack_verts<- clean_names(mack_verts)
+```
+
+```{r}
+# practicing accessing pieces of data frame 
+mc_wt_5 <- mack_verts$weight[5] 
+mc_length_8_20 <- mack_verts$length1[8:20]
+mc_dates <- mack_verts$sampledate
+```
+
+### Salamander subset and plots 
+```{r}
+# salamander subset ----
+mc_salamanders<- dplyr::filter(mack_verts, species == "DITE")
+head(mc_salamanders) # only has the Pacific Giant Salamanders 
+```
+
+```{r}
+# scatter plot ----
+# length 1 versus weight (g) in subset 
+
+mc_salamanders_plot <- ggplot(data = mc_salamanders, 
+                              aes(x = length1,
+                                  y = weight))+
+  geom_point(color = "darkgreen")+
+  theme_minimal()+
+  labs(x = "Snout-vent lenght (mm)",
+       y = "Weight (g)",
+       title = "Size characteristics of Dicamptodon tenebrosus",
+       subtitle = "Pacific Giant Salamanders in Mack Creek, Andrews Experimental Forest 1987 to Present",
+       caption = "doi:10.6073/pasta/7c78d662e847cdbe33584add8f809165")
+
+mc_salamanders_plot
+ggsave(here::here("figs", "salamander_size.png"), height = 6, width = 5)
+```
+
+### Cutthroat subset and plots 
+```{r}
+# make a cutthroat subset  ----
+
+# subset with only the species ONCL
+mc_trout <- dplyr::filter(mack_verts, species == "ONCL")
+
+```
+
+```{r}
+# scatter plot ----
+cutthroat_plot <- ggplot(data = mc_trout, 
+                         aes(x = length1, y = weight))+
+  geom_point(aes(color = reach), size = 4, show.legend = TRUE)+
+  scale_color_manual(values = c("purple","pink","deepskyblue3"))+
+  facet_wrap(~reach)+
+  labs(x = "Snout-vent lenght (mm)",
+       y = "Weight (g)",
+       title = "Size characteristics of Cutthroat Trout")
+  
+cutthroat_plot
+ggsave(here::here("figs", "cutthroat_size.png"), height = 6, width = 5)
+```
+
